@@ -1,5 +1,7 @@
 package com.example.chess69;
 
+import android.widget.ImageView;
+
 /**
  * This is an abstract class
  * that will be used to encapsulate
@@ -24,6 +26,10 @@ public abstract class Piece {
      */
     protected boolean hasMoved;
 
+    protected ImageView image;
+
+    protected int imageResource;
+
     /**
      * constructor for Piece class
      * @param color A String representing the type of the piece
@@ -33,6 +39,46 @@ public abstract class Piece {
         this.color = color;
         this.type = type;
         hasMoved = false;
+
+        // find correct picture representation of piece
+        if(color.equals("black") && type.equals("Bishop")){
+            //image.setImageResource(R.drawable.black_bishop);
+            imageResource = R.drawable.black_bishop;
+        }else if(color.equals("white") && type.equals("Bishop")) {
+            //image.setImageResource(R.drawable.white_bishop);
+            imageResource = R.drawable.white_bishop;
+        }else if(color.equals("black") && type.equals("King")) {
+            //image.setImageResource(R.drawable.black_king);
+            imageResource = R.drawable.black_king;
+        }else if(color.equals("white") && type.equals("King")) {
+            //image.setImageResource(R.drawable.white_king);
+            imageResource = R.drawable.white_king;
+        }else if(color.equals("black") && type.equals("Knight")) {
+            //image.setImageResource(R.drawable.black_knight);
+            imageResource = R.drawable.black_knight;
+        }else if(color.equals("white") && type.equals("Knight")) {
+            //image.setImageResource(R.drawable.white_knight);
+            imageResource = R.drawable.white_knight;
+        }else if(color.equals("black") && type.equals("Pawn")) {
+            //image.setImageResource(R.drawable.black_pawn);
+            imageResource = R.drawable.black_pawn;
+        }else if(color.equals("white") && type.equals("Pawn")) {
+            //image.setImageResource(R.drawable.white_pawn);
+            imageResource = R.drawable.white_pawn;
+        }else if(color.equals("black") && type.equals("Queen")) {
+            //image.setImageResource(R.drawable.black_queen);
+            imageResource = R.drawable.black_queen;
+        }else if(color.equals("white") && type.equals("Queen")) {
+            //image.setImageResource(R.drawable.white_queen);
+            imageResource = R.drawable.white_queen;
+        }else if(color.equals("black") && type.equals("Rook")) {
+            //image.setImageResource(R.drawable.black_rook);
+            imageResource = R.drawable.black_rook;
+        }else if(color.equals("white") && type.equals("Rook")) {
+            //image.setImageResource(R.drawable.white_rook);
+            imageResource = R.drawable.white_rook;
+        }
+
     }
 
     /**
@@ -74,6 +120,14 @@ public abstract class Piece {
 
     public void setType(String str) {
         type = str;
+    }
+
+    public ImageView getImage(){
+        return image;
+    }
+
+    public int getImageResource(){
+        return imageResource;
     }
 
     /**
