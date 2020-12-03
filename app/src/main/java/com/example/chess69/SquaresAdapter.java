@@ -13,7 +13,7 @@ import android.widget.TextView;
 public class SquaresAdapter extends BaseAdapter {
     private final Context mContext;
     private final Piece[] pieces;
-    private int square_num = 0;
+    //private int square_num = 0;
 
     public SquaresAdapter(Context context, Piece[] pieces){
         this.mContext = context;
@@ -31,8 +31,8 @@ public class SquaresAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int position){
-        return null;
+    public Piece getItem(int position){
+        return pieces[position];
     }
 
     @Override
@@ -42,10 +42,11 @@ public class SquaresAdapter extends BaseAdapter {
 
         System.out.println("position: " + position +", piece: "+piece);
 
-        if(convertView == null && piece != null){
+            //convertView == null &&
+        if(piece != null) {
             final LayoutInflater layoutInflater = LayoutInflater.from(mContext);
             convertView = layoutInflater.inflate(R.layout.square_layout, null);
-        }else if(convertView == null && piece == null){
+        }else if(piece == null){
             final LayoutInflater layoutInflater = LayoutInflater.from(mContext);
             convertView = layoutInflater.inflate(R.layout.empty_square_layout, null);
         }

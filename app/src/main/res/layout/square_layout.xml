@@ -7,13 +7,14 @@
         android:id="@+id/imageview_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:gravity="center"
         android:scaleType="centerCrop"/>
 
     <ImageView
         android:id="@+id/imageview_piece"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:gravity="center"
         android:scaleType="centerCrop"/>
-
 
 </LinearLayout>

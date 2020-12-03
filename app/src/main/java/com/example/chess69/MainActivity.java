@@ -18,14 +18,15 @@ public class MainActivity extends AppCompatActivity {
 
     int count = 0;
 
-    public static final String[] square_colors = {"#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF",
-            "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF",
-            "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF",
-            "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF",
-            "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF",
-            "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF",
-            "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF",
-            "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF", "#000000", "#FFFFFF"};
+    public static final String[] square_nums =
+            {"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
+            "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+            "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+            "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+            "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+            "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+            "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+            "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1"};
 
     public static final ImageView[] squares = {};
 
@@ -50,9 +51,11 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        GridView gridView = (GridView)findViewById(R.id.chessboard);
+        GridView chessboard_gridview = (GridView)findViewById(R.id.chessboard);
         SquaresAdapter squaresAdapter = new SquaresAdapter(this, pieces);
-        gridView.setAdapter(squaresAdapter);
+        chessboard_gridview.setAdapter(squaresAdapter);
+
+        //System.out.println("******INDEX 2: " + chessboard_gridview.getChildAt(2).toString());
 
         /*
         gridView = (GridView) findViewById(R.id.chessboard);
@@ -92,16 +95,24 @@ public class MainActivity extends AppCompatActivity {
         */
 
 
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        chessboard_gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id)
             {
-                Toast.makeText(MainActivity.this, "You Clicked On " +square_colors[+ position], Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(MainActivity.this, "You Clicked On " +square_nums[+ position], Toast.LENGTH_SHORT).show();
+                /*
+                System.out.println("***VIEW: " + view.toString());
+                System.out.println("pieces[20] before: "+pieces[20]);
+                pieces[20] = new Pawn("white");
+                squaresAdapter.notifyDataSetChanged();
+                System.out.println("pieces[20] after: "+pieces[20]);
+                 */
             }
         });
+
+        // everything set up, now implement gameplay
 
     }
 
