@@ -40,7 +40,7 @@ public class SquaresAdapter extends BaseAdapter {
 
         final Piece piece = pieces[position];
 
-        System.out.println("position: " + position +", piece: "+piece);
+        //System.out.println("position: " + position +", piece: "+piece);
 
             //convertView == null &&
         if(piece != null) {
