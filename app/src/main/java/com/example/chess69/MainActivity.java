@@ -1,7 +1,9 @@
 package com.example.chess69;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -30,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
     static String whiteKingLocation = "e1";
     static String blackKingLocation = "e8";
 
+    String promotionSelection;
+
     /**
      * boolean value used to determine if a player's king was in check prior to the current move
      */
@@ -50,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
     // create board
     static Piece[][] board = new Piece[8][8];
 
+    static Piece[] pieces;
+
     /**
      * a double matrix that holds boolean values for if a pawn is eligible to have the en passant move used to capture them
      */
@@ -68,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         startGame();
-        Piece[] pieces = new Piece[64];
+        pieces = new Piece[64];
 
         for(int  i = 0; i < 64; i++){
             pieces[i] = null;
@@ -138,32 +144,35 @@ public class MainActivity extends AppCompatActivity {
                     firstSquareSelection = position;
                 }else{ // first selection already made, so fill in second selection and perform move if its legal
                     secondSquareSelection = position;
-                    //! if move is legal{
-                        move = square_nums[firstSquareSelection] + " " + square_nums[secondSquareSelection];
-                        System.out.println("given move: "+move);
-                        if(!isMoveLegal(move, turn)) {
-                            firstSquareSelection = -1;
-                            secondSquareSelection = -1;
-                            Toast.makeText(MainActivity.this, "Illegal move, try again", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                        move(move);
-                        pieces[secondSquareSelection] = pieces[firstSquareSelection];
-                        pieces[firstSquareSelection] = null;
-                        squaresAdapter.notifyDataSetChanged();
 
-                        // change turn
-                        if(turn.equals("white")){
-                            turn = "black";
-                        }else{
-                            turn = "white";
-                        }
-                        printBoard();
-                        textview_turndisplay.setText(turn + "'s turn!");
+                    move = square_nums[firstSquareSelection] + " " + square_nums[secondSquareSelection];
+                    System.out.println("given move: "+move);
+                    if(!isMoveLegal(move, turn, firstSquareSelection)) {
+                        firstSquareSelection = -1;
+                        secondSquareSelection = -1;
+                        Toast.makeText(MainActivity.this, "Illegal move, try again", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    move(move, secondSquareSelection);
+                    pieces[secondSquareSelection] = pieces[firstSquareSelection];
+                    pieces[firstSquareSelection] = null;
+                    squaresAdapter.notifyDataSetChanged();
 
-                    //}else{
-                        //SHOWTOAST
-                    //}
+                    // change turn
+                    if(turn.equals("white")){
+                        turn = "black";
+                    }else{
+                        turn = "white";
+                    }
+
+                    // set hasMoved field of moved piece
+                    if(pieces[position] != null){
+                        pieces[position].setHasMoved(true);
+                    }
+
+                    printBoard();
+                    textview_turndisplay.setText(turn + "'s turn!");
+
                     firstSquareSelection = -1;
                     secondSquareSelection = -1;
 
@@ -228,11 +237,13 @@ public class MainActivity extends AppCompatActivity {
      * method used to execute a "move" of a piece on the board[][]
      * @param move given move to execute
      */
-    public static void move(String move) { // takes move as parameter in form e2 e3
+    public void move(String move, int endPosition) { // takes move as parameter in form e2 e3
         int startFile = (int)(move.charAt(0)) - 97;
         int startRank = (int)(move.charAt(1)) - 49;
         int endFile = (int)(move.charAt(3)) - 97;
         int endRank = (int)(move.charAt(4)) - 49;
+
+        //int endPosition = (endRank * 8) + endFile;
 
         //System.out.println("moving "+startFile +","+startRank+" to "+endFile+","+endRank);
 
@@ -258,27 +269,47 @@ public class MainActivity extends AppCompatActivity {
         board[endFile][endRank] = board[startFile][startRank];
         board[startFile][startRank] = null;
 
+        String[] new_piece_options = {"Queen", "Rook", "Bishop", "Knight"};
+
         // take care of promotion
         if( (board[endFile][endRank].getType().equals("Pawn") && endRank == 0 && currentColor.equals("black") )
                 || (board[endFile][endRank].getType().equals("Pawn") && endRank == 7 && currentColor.equals("white")) ) {
-            char newPiece = 'Q';
-            if(move.length() > 6) {
-                newPiece = move.charAt(6);
-            }
-            if(newPiece == 'Q') { // either no promotion piece specified, or queen chosen - so promote to queen
+            promotionSelection = "Queen";
+
+            // pop up dialog asking user which piece they'd like to upgrade to
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Pick a piece to promote to");
+            builder.setItems(new_piece_options, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // the user clicked on new_piece_options[which]
+                    promotionSelection = new_piece_options[which];
+                }
+            });
+            builder.show();
+
+            System.out.println("USER CHOSE: " + promotionSelection);
+
+
+            if(promotionSelection.equals("Queen")) { // either no promotion piece specified, or queen chosen - so promote to queen
                 board[endFile][endRank] = new Queen(currentColor);
                 board[endFile][endRank].setHasMoved(true);
-            }else if(newPiece == 'R') { // rook chosen
+            }else if(promotionSelection.equals("Rook")) { // rook chosen
                 board[endFile][endRank] = new Rook(currentColor);
                 board[endFile][endRank].setHasMoved(true);
-            }else if(newPiece == 'B') { // bishop chosen
+            }else if(promotionSelection.equals("Bishop")) { // bishop chosen
                 board[endFile][endRank] = new Bishop(currentColor);
                 board[endFile][endRank].setHasMoved(true);
-            }else if(newPiece == 'N') { // knight chosen
+            }else if(promotionSelection.equals("Knight")) { // knight chosen
                 board[endFile][endRank] = new Knight(currentColor);
                 board[endFile][endRank].setHasMoved(true);
             }
+
+            // make sure pieces array is up to date as well
+            pieces[endPosition] = board[endFile][endRank];
         }
+
+
 
         // if king moves, update whiteKingLocation or blackKingLocation var
         if(board[endFile][endRank].getType().equals("King")) { // king gets moved
@@ -310,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
      * @param color A String representing the color that is making the move
      * @return A boolean representing if move is legal (true) or illegal (false)
      */
-    public static boolean isMoveLegal(String move, String color) {
+    public static boolean isMoveLegal(String move, String color, int position) {
         ArrayList<String> preSearch = new ArrayList<String>();
         String preKingLocation;
         if(turn.equals("white")) {
@@ -358,12 +389,14 @@ public class MainActivity extends AppCompatActivity {
                     if(color.equals("black") && endRank - startRank < 0) {
                         if(enpassantMatrix[endFile][endRank+1]) {
                             board[endFile][endRank+1] = null;
+                            pieces[position+1] = null;
                             enpassantMatrix[endFile][endRank+1] = false;
                             return true;
                         }
                     }else if(color.equals("white") && endRank - startRank > 0){
                         if(enpassantMatrix[endFile][endRank-1]) {
                             board[endFile][endRank-1] = null;
+                            pieces[position-1] = null;
                             enpassantMatrix[endFile][endRank-1] = false;
                             return true;
                         }
