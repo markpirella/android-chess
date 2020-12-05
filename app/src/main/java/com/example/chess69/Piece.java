@@ -24,7 +24,8 @@ public abstract class Piece {
     /**
      * holds value for whether or not the piece has been moved yet
      */
-    protected boolean hasMoved;
+    //protected boolean hasMoved;
+    protected int numMoves;
 
     protected ImageView image;
 
@@ -38,7 +39,8 @@ public abstract class Piece {
     public Piece(String color, String type) {
         this.color = color;
         this.type = type;
-        hasMoved = false;
+        //hasMoved = false;
+        numMoves = 0;
 
         // find correct picture representation of piece
         if(color.equals("black") && type.equals("Bishop")){
@@ -101,16 +103,23 @@ public abstract class Piece {
      * getter method for field "hasMoved"
      * @return A boolean value representing whether or not the piece has been moved yet
      */
-    public boolean hasMoved() {
-        return hasMoved;
+    public int getNumMoves() {
+        return numMoves;
     }
 
-    /**
-     * setter method for field "hasMoved"
-     * @param val A boolean value that the "hasMoved" field will be set to
-     */
-    public void setHasMoved(boolean val) {
-        hasMoved = val;
+    public boolean hasMoved() {
+        if(numMoves > 0){
+            return true;
+        }
+        return false;
+    }
+
+    public void incNumMoves(){
+        numMoves++;
+    }
+
+    public void decNumMoves(){
+        numMoves--;
     }
 
     /**

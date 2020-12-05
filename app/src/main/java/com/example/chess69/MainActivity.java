@@ -4,18 +4,26 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Looper;
+import android.view.DragEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,6 +33,13 @@ public class MainActivity extends AppCompatActivity {
 
     String move;
 
+    String currentColor;
+
+    static GridView chessboard_gridview;
+
+    int promotionPosition = 0;
+    boolean beingPromoted = false;
+
     int numOfMoves = 0;
     static String turn = "white";
     boolean changeTurn = false;
@@ -32,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     static String whiteKingLocation = "e1";
     static String blackKingLocation = "e8";
 
-    String promotionSelection;
+    static String promotionSelection;
 
     /**
      * boolean value used to determine if a player's king was in check prior to the current move
@@ -53,8 +68,21 @@ public class MainActivity extends AppCompatActivity {
 
     // create board
     static Piece[][] board = new Piece[8][8];
+    /**
+     * a double matrix of Pieces used to hold the previous value of the board before a move,
+     * useful for checking for checkmate
+     */
+    static Piece[][] historyBoard = new Piece[8][8];
 
     static Piece[] pieces;
+
+    public static SquaresAdapter squaresAdapter;
+
+    boolean canUndo = false;
+
+    String lastSuccessfulMove;
+    int undoEndPosition = 0;
+    int undoStartPosition = 0;
 
     /**
      * a double matrix that holds boolean values for if a pawn is eligible to have the en passant move used to capture them
@@ -63,8 +91,8 @@ public class MainActivity extends AppCompatActivity {
 
     // variables to first and second square selections, useful for moving chess pieces
     // -1 means no selection made
-    int firstSquareSelection = -1;
-    int secondSquareSelection = -1;
+    static int firstSquareSelection = -1;
+    static int secondSquareSelection = -1;
 
     TextView textview_turndisplay;
 
@@ -72,6 +100,110 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // link buttons here
+        final Button undo_button = (Button) findViewById(R.id.undo_button);
+        final Button ai_button = (Button) findViewById(R.id.ai_button);
+
+        // set up button listeners here
+        undo_button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+                if(!canUndo){
+                    Toast.makeText(MainActivity.this, "Cannot undo any further", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if(numOfMoves == 0){
+                    Toast.makeText(MainActivity.this, "No moves to undo", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                /*
+                copyBoardToOther(undoBoard, board);
+                // copy board to pieces to update that as well
+                int count = 0;
+                for(int i = 7; i >= 0; i--){
+                    for(int j = 0; j < 8; j++){
+                        pieces[count] = board[j][i];
+                        count++;
+                    }
+                }
+                 */
+                performReverseMove(lastSuccessfulMove);
+                squaresAdapter.notifyDataSetChanged();
+                numOfMoves--;
+                if(turn.equals("black")){
+                    turn = "white";
+                }else{
+                    turn = "black";
+                }
+                textview_turndisplay.setText(turn + "'s turn!");
+                canUndo = false;
+            }
+        });
+
+        ai_button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+                firstSquareSelection = -1;
+                secondSquareSelection = -1;
+
+                // save board in case given move puts king into check, so you can print "illegal move" and revert the board back
+                copyBoardToOther(board, historyBoard);
+                ArrayList<String> possibleLegalMoves = calculateAllPossibleMoves(turn);
+                for(int i = 0; i < possibleLegalMoves.size(); i++) {
+                    int endFile = (int)(possibleLegalMoves.get(i).charAt(3)) - 97;
+                    int endRank = (int)(possibleLegalMoves.get(i).charAt(4)) - 49;
+                    int endPosition = ((7 - endRank) * 8) + endFile;
+                    System.out.println("MOVE: "+possibleLegalMoves.get(i)+" ENDPOSITION: "+endPosition);
+                    move(possibleLegalMoves.get(i), endPosition);
+
+                    // check and see if the king of the player who made the move got put into check
+                    ArrayList<String> toSearch = new ArrayList<String>();
+                    String tempKingLocation;
+                    if (turn.equals("white")) {
+                        toSearch = calculateAllPossibleMoves("black");
+                        tempKingLocation = getKingLocation("white");
+                    } else {
+                        toSearch = calculateAllPossibleMoves("white");
+                        tempKingLocation = getKingLocation("black");
+                    }
+
+                    boolean putSelfIntoCheck = false;
+                    for (int k = 0; k < toSearch.size(); k++) {
+                        if (toSearch.get(k).substring(3, 5).equals(tempKingLocation)) {
+                            //canUndo = false;
+                            System.out.println("Illegal move, try again.");
+                            putSelfIntoCheck = true;
+                            break;
+                        }
+                    }
+                    if (putSelfIntoCheck) {
+                        possibleLegalMoves.remove(i);
+                        i--;
+                    }
+
+                    copyBoardToOther(historyBoard, board);
+                    numOfMoves--;
+
+                }
+
+                Random rand = new Random();
+                int randomNum = rand.nextInt((possibleLegalMoves.size()));
+                //move = possibleLegalMoves.get(ThreadLocalRandom.current().nextInt(0, possibleLegalMoves.size())); // grab random move to execute
+                move = possibleLegalMoves.get(randomNum); // grab random move to execute
+                int startFile = (int)(move.charAt(0)) - 97;
+                int startRank = (int)(move.charAt(1)) - 49;
+                int endFile = (int)(move.charAt(3)) - 97;
+                int endRank = (int)(move.charAt(4)) - 49;
+                int startPosition = ((7 - startRank) * 8) + startFile;
+                int endPosition = ((7 - endRank) * 8) + endFile;
+                System.out.println("RANDOMLY SELECTED MOVE: "+move+" STARTPOSITION: " +startPosition+ " ENDPOSITION: "+endPosition);
+                firstSquareSelection = startPosition;
+                secondSquareSelection = endPosition;
+                executeMoveAndAllChecks(endPosition);
+
+            }
+        });
 
         startGame();
         pieces = new Piece[64];
@@ -87,10 +219,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        GridView chessboard_gridview = (GridView)findViewById(R.id.chessboard);
+        chessboard_gridview = (GridView)findViewById(R.id.chessboard);
         textview_turndisplay = (TextView)findViewById(R.id.turnDisplay);
         textview_turndisplay.setText("white's turn!");
-        SquaresAdapter squaresAdapter = new SquaresAdapter(this, pieces);
+        squaresAdapter = new SquaresAdapter(this, pieces);
         chessboard_gridview.setAdapter(squaresAdapter);
 
         //System.out.println("******INDEX 2: " + chessboard_gridview.getChildAt(2).toString());
@@ -132,6 +264,33 @@ public class MainActivity extends AppCompatActivity {
         }
         */
 
+        chessboard_gridview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                final Piece piece = pieces[position];
+                Piece temp = pieces[position];
+                final ImageView imageView = (ImageView) view.findViewById(R.id.imageview_piece);
+                imageView.setImageResource(piece.getImageResource());
+                View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(imageView);
+                pieces[position] = null;
+                squaresAdapter.notifyDataSetChanged();
+                pieces[position] = temp;
+
+                view.startDrag( null, //data to be dragged
+                        shadowBuilder, //drag shadow
+                        view, //local data about the drag and drop operation
+                        0   //no needed flags
+                );
+
+                firstSquareSelection = position;
+                System.out.println("first square selection: "+firstSquareSelection+" second: "+secondSquareSelection);
+
+                view.setVisibility(View.VISIBLE);
+                return true;
+
+            }
+        });
 
         chessboard_gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -139,6 +298,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id)
             {
+                System.out.println("ON ITEM CLICK LISTENER");
                 //Toast.makeText(MainActivity.this, "You Clicked On " +square_nums[+ position], Toast.LENGTH_SHORT).show();
                 if(firstSquareSelection == -1){ // no first selection made, so set it
                     firstSquareSelection = position;
@@ -153,45 +313,159 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this, "Illegal move, try again", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    move(move, secondSquareSelection);
-                    pieces[secondSquareSelection] = pieces[firstSquareSelection];
-                    pieces[firstSquareSelection] = null;
-                    squaresAdapter.notifyDataSetChanged();
 
-                    // change turn
-                    if(turn.equals("white")){
-                        turn = "black";
-                    }else{
-                        turn = "white";
-                    }
-
-                    // set hasMoved field of moved piece
-                    if(pieces[position] != null){
-                        pieces[position].setHasMoved(true);
-                    }
-
-                    printBoard();
-                    textview_turndisplay.setText(turn + "'s turn!");
-
-                    firstSquareSelection = -1;
-                    secondSquareSelection = -1;
-
-
+                    executeMoveAndAllChecks(position);
 
                 }
-                /*
-                System.out.println("***VIEW: " + view.toString());
-                System.out.println("pieces[20] before: "+pieces[20]);
-                pieces[20] = new Pawn("white");
-                squaresAdapter.notifyDataSetChanged();
-                System.out.println("pieces[20] after: "+pieces[20]);
-                 */
             }
         });
+
+        chessboard_gridview.setOnDragListener(new MyDragListener());
+
+
+
+    /*
+        chessboard_gridview.setOnTouchListener(new View.OnTouchListener() {
+
+           @Override
+           public boolean onTouch(View v, MotionEvent event) {
+
+               System.out.println("ONTOUCH LISTENER");
+
+               if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                   GridView parent = (GridView) v;
+
+                   int x = (int) event.getX();
+                   int y = (int) event.getY();
+
+                   int position = parent.pointToPosition(x, y);
+                   System.out.println("SELECTED POSITION: "+position);
+
+                   if (position > AdapterView.INVALID_POSITION) {
+
+
+                   }
+               }
+               return false;
+           }
+       });
+
+     */
+
+
 
         // everything set up, now implement gameplay
 
     }
+
+    class MyDragListener implements View.OnDragListener {
+
+        @Override
+        public boolean onDrag(View v, DragEvent event) {
+            //System.out.println("DRAG STARTED!!!");
+
+            // Handles each of the expected events
+            switch (event.getAction()) {
+
+                //signal for the start of a drag and drop operation.
+                case DragEvent.ACTION_DRAG_STARTED:
+                    // do nothing
+                    System.out.println("DRAG STARTED!!!");
+                    break;
+
+                //the drag point has entered the bounding box of the View
+                case DragEvent.ACTION_DRAG_ENTERED:
+                    //v.setBackground(targetShape);   //change the shape of the view
+                    break;
+
+                //the user has moved the drag shadow outside the bounding box of the View
+                case DragEvent.ACTION_DRAG_EXITED:
+                    //v.setBackground(normalShape);   //change the shape of the view back to normal
+                    break;
+
+                //drag shadow has been released,the drag point is within the bounding box of the View
+                case DragEvent.ACTION_DROP:
+                    // if the view is the bottomlinear, we accept the drag item
+                    System.out.println("DRAG ENDED");
+                    int x = (int) event.getX();
+                    int y = (int) event.getY();
+                    int endPosition = chessboard_gridview.pointToPosition(x, y);
+                    secondSquareSelection = endPosition;
+                    System.out.println("SECOND SQUARE: "+endPosition);
+
+                    // execute proposed move!!!
+                    move = square_nums[firstSquareSelection] + " " + square_nums[secondSquareSelection];
+                    System.out.println("given move: "+move);
+                    if(!isMoveLegal(move, turn, firstSquareSelection)) {
+                        firstSquareSelection = -1;
+                        secondSquareSelection = -1;
+                        Toast.makeText(MainActivity.this, "Illegal move, try again", Toast.LENGTH_SHORT).show();
+
+                        squaresAdapter.notifyDataSetChanged();
+                        break;
+                    }
+
+                    executeMoveAndAllChecks(endPosition);
+
+                    break;
+
+                //the drag and drop operation has concluded.
+                case DragEvent.ACTION_DRAG_ENDED:
+                    //v.setBackground(normalShape);   //go back to normal shape
+
+                default:
+                    break;
+            }
+            return true;
+        }
+    }
+
+    /*
+    class MyDragListener implements View.OnDragListener {
+
+        @Override
+        public boolean onDrag(View v, DragEvent event) {
+            System.out.println("DRAG STARTED!!!");
+
+            // Handles each of the expected events
+            switch (event.getAction()) {
+
+                //signal for the start of a drag and drop operation.
+                case DragEvent.ACTION_DRAG_STARTED:
+                    // do nothing
+                    System.out.println("DRAG STARTED!!!");
+                    break;
+
+                //the drag point has entered the bounding box of the View
+                case DragEvent.ACTION_DRAG_ENTERED:
+                    //v.setBackground(targetShape);   //change the shape of the view
+                    break;
+
+                //the user has moved the drag shadow outside the bounding box of the View
+                case DragEvent.ACTION_DRAG_EXITED:
+                    //v.setBackground(normalShape);   //change the shape of the view back to normal
+                    break;
+
+                //drag shadow has been released,the drag point is within the bounding box of the View
+                case DragEvent.ACTION_DROP:
+                    // if the view is the bottomlinear, we accept the drag item
+                    System.out.println("DRAG ENDED");
+                    break;
+
+                //the drag and drop operation has concluded.
+                case DragEvent.ACTION_DRAG_ENDED:
+                    //v.setBackground(normalShape);   //go back to normal shape
+
+                default:
+                    break;
+            }
+            return true;
+        }
+
+    }
+
+     */
+
 
     /**
      * Method used to populate the "board" double matrix with
@@ -238,6 +512,7 @@ public class MainActivity extends AppCompatActivity {
      * @param move given move to execute
      */
     public void move(String move, int endPosition) { // takes move as parameter in form e2 e3
+        //System.out.println("USER CHOSE: " + promotionSelection);
         int startFile = (int)(move.charAt(0)) - 97;
         int startRank = (int)(move.charAt(1)) - 49;
         int endFile = (int)(move.charAt(3)) - 97;
@@ -247,19 +522,25 @@ public class MainActivity extends AppCompatActivity {
 
         //System.out.println("moving "+startFile +","+startRank+" to "+endFile+","+endRank);
 
-        String currentColor = board[startFile][startRank].getColor();
+        System.out.println("accessing piece at FileRank: " + startFile+","+startRank);
+
+        if(board[startFile][startRank] == null){
+            return;
+        }
+
+        currentColor = board[startFile][startRank].getColor();
 
         // set the hasMoved field of the current piece to true
-        //board[startFile][startRank].setHasMoved(true);
+        //board[startFile][startRank].incNumMoves();
 
         // takes care of castling
         if (board[startFile][startRank].getType().equals("King") && Math.abs(endFile-startFile) == 2) {
             if (endFile-startFile == 2) {
-                board[7][startRank].setHasMoved(true);
+                board[7][startRank].incNumMoves();
                 board[5][startRank] = board[7][startRank];
                 board[7][startRank] = null;
             } else {
-                board[0][startRank].setHasMoved(true);
+                board[0][startRank].incNumMoves();
                 board[3][startRank] = board[0][startRank];
                 board[0][startRank] = null;
             }
@@ -269,13 +550,14 @@ public class MainActivity extends AppCompatActivity {
         board[endFile][endRank] = board[startFile][startRank];
         board[startFile][startRank] = null;
 
-        String[] new_piece_options = {"Queen", "Rook", "Bishop", "Knight"};
+        //String[] new_piece_options = {"Queen", "Rook", "Bishop", "Knight"};
 
         // take care of promotion
-        if( (board[endFile][endRank].getType().equals("Pawn") && endRank == 0 && currentColor.equals("black") )
-                || (board[endFile][endRank].getType().equals("Pawn") && endRank == 7 && currentColor.equals("white")) ) {
+        if( (board[endFile][endRank] != null && board[endFile][endRank].getType().equals("Pawn") && endRank == 0 && currentColor.equals("black") )
+                || (board[endFile][endRank] != null && board[endFile][endRank].getType().equals("Pawn") && endRank == 7 && currentColor.equals("white")) ) {
             promotionSelection = "Queen";
 
+            /*
             // pop up dialog asking user which piece they'd like to upgrade to
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Pick a piece to promote to");
@@ -284,35 +566,58 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(DialogInterface dialog, int which) {
                     // the user clicked on new_piece_options[which]
                     promotionSelection = new_piece_options[which];
+                    throw new RuntimeException();
                 }
             });
             builder.show();
 
-            System.out.println("USER CHOSE: " + promotionSelection);
+             */
+
+            //beingPromoted = true;
+
+            // go to promotion piece selection activity
+            /*
+            Bundle bundle = new Bundle();
+            bundle.putInt(PickPromotionPiece.END_RANK, endRank);
+            bundle.putInt(PickPromotionPiece.END_FILE, endFile);
+            bundle.putInt(PickPromotionPiece.END_POSITION, endPosition);
+            bundle.putString(PickPromotionPiece.CURRENT_COLOR, currentColor);
 
 
+             */
+
+            promotionPosition = endPosition;
+
+            Intent intent = new Intent(this, PickPromotionPiece.class);
+            //intent.putExtras(bundle);
+            startActivityForResult(intent, 1);
+
+
+            //System.out.println("USER CHOSE: " + promotionSelection);
+
+    /*
             if(promotionSelection.equals("Queen")) { // either no promotion piece specified, or queen chosen - so promote to queen
                 board[endFile][endRank] = new Queen(currentColor);
-                board[endFile][endRank].setHasMoved(true);
+                board[endFile][endRank].incNumMoves();
             }else if(promotionSelection.equals("Rook")) { // rook chosen
                 board[endFile][endRank] = new Rook(currentColor);
-                board[endFile][endRank].setHasMoved(true);
+                board[endFile][endRank].incNumMoves();
             }else if(promotionSelection.equals("Bishop")) { // bishop chosen
                 board[endFile][endRank] = new Bishop(currentColor);
-                board[endFile][endRank].setHasMoved(true);
+                board[endFile][endRank].incNumMoves();
             }else if(promotionSelection.equals("Knight")) { // knight chosen
                 board[endFile][endRank] = new Knight(currentColor);
-                board[endFile][endRank].setHasMoved(true);
+                board[endFile][endRank].incNumMoves();
             }
 
-            // make sure pieces array is up to date as well
-            pieces[endPosition] = board[endFile][endRank];
+     */
+
         }
 
 
 
         // if king moves, update whiteKingLocation or blackKingLocation var
-        if(board[endFile][endRank].getType().equals("King")) { // king gets moved
+        if(board[endFile][endRank] != null && board[endFile][endRank].getType().equals("King")) { // king gets moved
             if(currentColor.equals("black")) {
                 blackKingLocation = move.substring(3);
             }else {
@@ -320,14 +625,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // revert all enpassant values back to false for the player who DIDN'T just make a move
-        for(int a = 0; a < 8; a++) {
-            for(int b = 0; b < 8; b++) {
-                if( board[a][b] != null && !(board[a][b].getColor().equals(turn)) ) {
-                    enpassantMatrix[a][b] = false;
-                }
-            }
-        }
+        numOfMoves++;
+        canUndo = true;
 
     }
 
@@ -1199,5 +1498,214 @@ public class MainActivity extends AppCompatActivity {
         System.out.println();
 
     }
+
+    private void updateGUIForPromotion(int endPosition){
+        // make sure pieces array is up to date
+        pieces[endPosition] = board[endPosition / 8][endPosition % 8];
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            String returnedResult = data.getData().toString();
+            System.out.println("GOT "+returnedResult);
+
+            int endFile = 8 - ((64 - promotionPosition) % 8);
+            int endRank = (64 - promotionPosition) / 8;
+
+
+            // set board[][] and pieces[]
+            if(returnedResult.equals("Queen")) { // either no promotion piece specified, or queen chosen - so promote to queen
+                board[endFile][endRank] = new Queen(currentColor);
+                board[endFile][endRank].incNumMoves();
+            }else if(returnedResult.equals("Rook")) { // rook chosen
+                board[endFile][endRank] = new Rook(currentColor);
+                board[endFile][endRank].incNumMoves();
+            }else if(returnedResult.equals("Bishop")) { // bishop chosen
+                board[endFile][endRank] = new Bishop(currentColor);
+                board[endFile][endRank].incNumMoves();
+            }else if(returnedResult.equals("Knight")) { // knight chosen
+                board[endFile][endRank] = new Knight(currentColor);
+                board[endFile][endRank].incNumMoves();
+            }
+
+            pieces[promotionPosition] = board[endFile][endRank];
+            squaresAdapter.notifyDataSetChanged();
+
+        }
+
+    }
+
+    /**
+     * method to copy matrices to one another. used for board[][] and historyBoard[][]
+     * @param from matrix to copy from
+     * @param to matrix to copy to
+     */
+    public static void copyBoardToOther(Piece[][] from, Piece[][] to) {
+        for(int i = 0; i < 8; i++) {
+            for(int j = 0; j < 8; j++) {
+                to[i][j] = from[i][j];
+            }
+        }
+        return;
+    }
+
+    private void performReverseMove(String move){
+        String newMove = move.substring(3,5) + " " + move.substring(0,2);
+        move(newMove, undoEndPosition);
+        pieces[undoEndPosition] = pieces[undoStartPosition];
+        pieces[undoStartPosition] = null;
+        pieces[undoEndPosition].decNumMoves();
+    }
+
+    private void executeMoveAndAllChecks(int position){
+
+        // save board in case given move puts king into check, so you can print "illegal move" and revert the board back
+        copyBoardToOther(board, historyBoard);
+        move(move, secondSquareSelection);
+
+        // check and see if the king of the player who made the move got put into check
+        ArrayList<String> toSearch = new ArrayList<String>();
+        String tempKingLocation;
+        if(turn.equals("white")) {
+            toSearch = calculateAllPossibleMoves("black");
+            tempKingLocation = getKingLocation("white");
+        }else {
+            toSearch = calculateAllPossibleMoves("white");
+            tempKingLocation = getKingLocation("black");
+        }
+
+        boolean putSelfIntoCheck = false;
+        for(int k = 0; k < toSearch.size(); k++) {
+            if(toSearch.get(k).substring(3,5).equals(tempKingLocation)) {
+                copyBoardToOther(historyBoard, board);
+                numOfMoves--;
+                //canUndo = false;
+                System.out.println("Illegal move, try again.");
+                putSelfIntoCheck = true;
+                break;
+            }
+        }
+        if(putSelfIntoCheck) {
+            Toast.makeText(MainActivity.this, "Illegal move, try again", Toast.LENGTH_SHORT).show();
+            firstSquareSelection = -1;
+            secondSquareSelection = -1;
+            return;
+        }
+
+
+        // revert all enpassant values back to false for the player who DIDN'T just make a move
+        for(int a = 0; a < 8; a++) {
+            for(int b = 0; b < 8; b++) {
+                if( board[a][b] != null && !(board[a][b].getColor().equals(turn)) ) {
+                    enpassantMatrix[a][b] = false;
+                }
+            }
+        }
+
+        boolean isCheck = false;
+        boolean isCheckmate = false;
+
+        // check and see if the move put the opposing player's king into check
+        ArrayList<String> toSearch2;
+        String tempKingLocation2;
+        if(turn.equals("white")) {
+            toSearch2 = calculateAllPossibleMoves("white");
+            tempKingLocation2 = getKingLocation("black");
+        }else {
+            toSearch2 = calculateAllPossibleMoves("black");
+            tempKingLocation2 = getKingLocation("white");
+        }
+
+        for(int k = 0; k < toSearch2.size(); k++) {
+            if(toSearch2.get(k).substring(3,5).equals(tempKingLocation2)) {
+                isCheck = true;
+                break;
+            }
+        }
+
+        // if so, check and see if it put opposing player's king into checkmate as well
+        if(isCheck) {
+            Toast.makeText(MainActivity.this, turn + " is in check!", Toast.LENGTH_SHORT).show();
+            int checkmateCounter = 0;
+            ArrayList<String> toSearchForCheckmate = new ArrayList<String>();
+            if(turn.equals("white")) {
+                toSearchForCheckmate = calculateAllPossibleMoves("black");
+            }else {
+                toSearchForCheckmate = calculateAllPossibleMoves("white");
+            }
+            for(int k = 0; k < toSearchForCheckmate.size(); k++) {
+                //System.out.println("value being passed to move(): "+toSearchForCheckmate.get(k));
+                copyBoardToOther(board, historyBoard);
+                move(toSearchForCheckmate.get(k), secondSquareSelection);
+                ArrayList<String> toSearchForCheckmate_2 = new ArrayList<String>();
+                if(turn.equals("white")) {
+                    toSearchForCheckmate_2 = calculateAllPossibleMoves("white");
+                    tempKingLocation = getKingLocation("black");
+                }else {
+                    toSearchForCheckmate_2 = calculateAllPossibleMoves("black");
+                    tempKingLocation = getKingLocation("white");
+                }
+
+                //System.out.println("number of possible moves to check through: " +toSearchForCheckmate_2.size());
+                for(int i = 0; i < toSearchForCheckmate_2.size(); i++) {
+                    if(toSearchForCheckmate_2.get(i).substring(3,5).equals(tempKingLocation)) {
+                        //isCheck = true;
+                        checkmateCounter++;
+                        break;
+                    }
+                }
+                copyBoardToOther(historyBoard, board);
+                numOfMoves--;
+                //canUndo = false;
+            }
+            if(checkmateCounter == toSearchForCheckmate.size()) {
+                isCheckmate = true;
+            }
+        }
+
+        // if checkmate, indicate winner and terminate program
+        if(isCheckmate) {
+            Toast.makeText(MainActivity.this, "Checkmate! " + turn + "wins!", Toast.LENGTH_SHORT).show();
+            if(turn.equals("black")) {
+                System.out.println("Checkmate\nBlack wins");
+            }else {
+                System.out.println("Checkmate\nWhite wins");
+
+            }
+        }
+
+        if(firstSquareSelection < 0 || secondSquareSelection < 0){
+            return;
+        }
+        pieces[secondSquareSelection] = pieces[firstSquareSelection];
+        pieces[firstSquareSelection] = null;
+        squaresAdapter.notifyDataSetChanged();
+
+        // change turn
+        if(turn.equals("white")){
+            turn = "black";
+        }else{
+            turn = "white";
+        }
+
+        // set hasMoved field of moved piece
+        if(pieces[position] != null){
+            pieces[position].incNumMoves();
+        }
+
+        printBoard();
+        textview_turndisplay.setText(turn + "'s turn!");
+
+        lastSuccessfulMove = move;
+        undoEndPosition = firstSquareSelection;
+        undoStartPosition = secondSquareSelection;
+
+        firstSquareSelection = -1;
+        secondSquareSelection = -1;
+
+    }
+
+
 
 }
