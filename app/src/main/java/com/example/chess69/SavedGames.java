@@ -5,17 +5,14 @@ import java.util.ArrayList;
 
 public class SavedGames implements Serializable {
 
-    ArrayList<ArrayList<String>> games;
-    ArrayList<String> titles;
+    ArrayList<SavedGame> games;
 
     public SavedGames(){
-        games = new ArrayList<ArrayList<String>>();
-        titles = new ArrayList<String>();
+        games = new ArrayList<SavedGame>();
     }
 
-    public void addNewGame(String title, ArrayList<String> game){
-        games.add(game);
-        titles.add(title);
+    public void addNewGame(ArrayList<String> moves, String title){
+        games.add(new SavedGame(moves, title));
     }
 
 }

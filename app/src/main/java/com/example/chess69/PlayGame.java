@@ -42,6 +42,8 @@ public class PlayGame extends AppCompatActivity {
 
     String currentColor;
 
+    ArrayList<String> moves;
+
     static GridView chessboard_gridview;
 
     int promotionPosition = 0;
@@ -108,12 +110,16 @@ public class PlayGame extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.play_game);
 
+        moves = new ArrayList<String>();
+
         // set up back arrow button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // link buttons here
         final Button undo_button = (Button) findViewById(R.id.undo_button);
         final Button ai_button = (Button) findViewById(R.id.ai_button);
+        final Button draw_button = (Button) findViewById(R.id.draw_button);
+        final Button resign_button = (Button) findViewById(R.id.resign_button);
 
         // set up button listeners here
         undo_button.setOnClickListener(new View.OnClickListener() {
@@ -138,6 +144,7 @@ public class PlayGame extends AppCompatActivity {
                     }
                 }
                  */
+                moves.remove(moves.size()-1);
                 performReverseMove(lastSuccessfulMove);
                 squaresAdapter.notifyDataSetChanged();
                 numOfMoves--;
@@ -214,6 +221,22 @@ public class PlayGame extends AppCompatActivity {
 
             }
         });
+
+        draw_button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+
+            }
+        });
+
+        resign_button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+
+            }
+        });
+
+
 
         startGame();
         pieces = new Piece[64];
@@ -596,6 +619,7 @@ public class PlayGame extends AppCompatActivity {
         if( (board[endFile][endRank] != null && board[endFile][endRank].getType().equals("Pawn") && endRank == 0 && currentColor.equals("black") )
                 || (board[endFile][endRank] != null && board[endFile][endRank].getType().equals("Pawn") && endRank == 7 && currentColor.equals("white")) ) {
             promotionSelection = "Queen";
+            beingPromoted = true;
 
             /*
             // pop up dialog asking user which piece they'd like to upgrade to
@@ -728,14 +752,14 @@ public class PlayGame extends AppCompatActivity {
                     if(color.equals("black") && endRank - startRank < 0) {
                         if(enpassantMatrix[endFile][endRank+1]) {
                             board[endFile][endRank+1] = null;
-                            pieces[position+1] = null;
+                            pieces[position+(endFile-startFile)] = null;
                             enpassantMatrix[endFile][endRank+1] = false;
                             return true;
                         }
                     }else if(color.equals("white") && endRank - startRank > 0){
                         if(enpassantMatrix[endFile][endRank-1]) {
                             board[endFile][endRank-1] = null;
-                            pieces[position-1] = null;
+                            pieces[position+(endFile-startFile)] = null;
                             enpassantMatrix[endFile][endRank-1] = false;
                             return true;
                         }
@@ -1546,9 +1570,12 @@ public class PlayGame extends AppCompatActivity {
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
+        if (requestCode == 1 && resultCode == RESULT_OK) {
             String returnedResult = data.getData().toString();
             System.out.println("GOT "+returnedResult);
+            move += " " + returnedResult.charAt(0);
+            moves.add(move);
+            System.out.println("**********adding move: "+move);
 
             int endFile = 8 - ((64 - promotionPosition) % 8);
             int endRank = (64 - promotionPosition) / 8;
@@ -1572,6 +1599,10 @@ public class PlayGame extends AppCompatActivity {
             pieces[promotionPosition] = board[endFile][endRank];
             squaresAdapter.notifyDataSetChanged();
 
+        }else if(requestCode == 2){
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
         }
 
     }
@@ -1744,7 +1775,13 @@ public class PlayGame extends AppCompatActivity {
         firstSquareSelection = -1;
         secondSquareSelection = -1;
 
-
+        // add successful move to moves ArrayList
+        if(!beingPromoted) {
+            System.out.println("adding move: "+move);
+            moves.add(move);
+        }else{
+            beingPromoted = false;
+        }
 
     }
 
@@ -1782,7 +1819,7 @@ public class PlayGame extends AppCompatActivity {
         builder.setItems(postgame_options, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                // the user clicked on new_piece_options[which]
+                // the user clicked on postgame_options[which]
                 postgameSelection = which;
                 if(which == 0){ // restart activity
                     Intent intent = getIntent();
@@ -1790,7 +1827,9 @@ public class PlayGame extends AppCompatActivity {
                     startActivity(intent);
                 }else if(which == 1){ // save game to serializable SavedGames object
                     Intent intent = new Intent(getApplicationContext(), SaveGame.class);
-                    startActivity(intent);
+                    intent.putExtra("moves", moves);
+                    System.out.println("ALL MOVES: "+moves);
+                    startActivityForResult(intent, 2);
                 }else{ // go back to main menu by ending activity
                     finish();
                 }
