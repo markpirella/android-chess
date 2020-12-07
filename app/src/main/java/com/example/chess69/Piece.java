@@ -31,6 +31,8 @@ public abstract class Piece {
 
     protected int imageResource;
 
+    protected boolean selected;
+
     /**
      * constructor for Piece class
      * @param color A String representing the type of the piece
@@ -39,6 +41,7 @@ public abstract class Piece {
     public Piece(String color, String type) {
         this.color = color;
         this.type = type;
+        this.selected = false;
         //hasMoved = false;
         numMoves = 0;
 

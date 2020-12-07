@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <GridView
+        android:id="@+id/chessboard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#ffffff"
+        android:gravity="center_horizontal"
+        android:numColumns="8" >
+    </GridView>
+
+    <TextView
+        android:id="@+id/turnDisplay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/chessboard"
+        android:layout_marginBottom="-30dp"
+        android:layout_centerHorizontal="true"
+        android:textSize="20sp" />
+
+    <Button
+        android:id="@+id/undo_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/turnDisplay"
+        android:layout_marginBottom="-50dp"
+        android:gravity="center"
+        android:text="Undo" />
+
+    <Button
+        android:id="@+id/ai_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@id/undo_button"
+        android:layout_marginTop="432dp"
+        android:layout_marginRight="-105dp"
+        android:gravity="right"
+        android:text="AI Move" />
+
+    <Button
+        android:id="@+id/draw_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@id/ai_button"
+        android:layout_marginTop="432dp"
+        android:layout_marginRight="-95dp"
+        android:gravity="right"
+        android:text="Draw" />
+
+    <Button
+        android:id="@+id/resign_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@id/draw_button"
+        android:layout_marginTop="432dp"
+        android:layout_marginRight="-95dp"
+        android:gravity="right"
+        android:text="Resign" />
+
+</RelativeLayout>

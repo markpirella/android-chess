@@ -4,43 +4,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".MainActivity">
-
-    <GridView
-        android:id="@+id/chessboard"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="#ffffff"
-        android:gravity="center_horizontal"
-        android:numColumns="8" >
-    </GridView>
+    android:orientation="vertical">
 
     <TextView
-        android:id="@+id/turnDisplay"
+        android:id="@+id/textview_main_menu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/chessboard"
-        android:layout_marginBottom="-30dp"
-        android:textSize="20sp" />
+        android:textSize="25dp"
+        android:layout_centerHorizontal="true"
+        android:text="\n\nSelect an option below:\n" />
 
     <Button
-        android:id="@+id/undo_button"
+        android:id="@+id/button_play_game"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/turnDisplay"
-        android:layout_marginBottom="-50dp"
-        android:gravity="center"
-        android:text="Undo" />
+        android:layout_below="@id/textview_main_menu"
+        android:layout_centerHorizontal="true"
+        android:text="Play Chess" />
 
     <Button
-        android:id="@+id/ai_button"
+        android:id="@+id/button_watch_game"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignRight="@id/undo_button"
-        android:layout_marginTop="432dp"
-        android:layout_marginRight="-100dp"
-        android:gravity="right"
-        android:text="AI Move" />
-
+        android:layout_below="@id/button_play_game"
+        android:layout_centerHorizontal="true"
+        android:text="Watch Saved Game" />
 </RelativeLayout>

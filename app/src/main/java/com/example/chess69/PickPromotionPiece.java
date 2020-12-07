@@ -8,10 +8,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import static com.example.chess69.MainActivity.board;
-import static com.example.chess69.MainActivity.pieces;
-import static com.example.chess69.MainActivity.promotionSelection;
-import static com.example.chess69.MainActivity.squaresAdapter;
+import static com.example.chess69.PlayGame.board;
+import static com.example.chess69.PlayGame.pieces;
+import static com.example.chess69.PlayGame.promotionSelection;
+import static com.example.chess69.PlayGame.squaresAdapter;
 
 public class PickPromotionPiece extends AppCompatActivity {
     String chosenPiece;

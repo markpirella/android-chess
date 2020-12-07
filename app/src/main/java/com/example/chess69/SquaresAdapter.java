@@ -77,6 +77,10 @@ public class SquaresAdapter extends BaseAdapter {
             convertView.setBackgroundColor(Color.parseColor("#594017"));
         }
 
+        if(piece != null && piece.selected == true){
+            convertView.setBackgroundColor(Color.parseColor("#4DBF2E"));
+        }
+
         //convertView.setOnDragListener(new MyDragListener());
 
         /*
