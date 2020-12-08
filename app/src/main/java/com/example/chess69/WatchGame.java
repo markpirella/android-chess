@@ -32,12 +32,12 @@ public class WatchGame extends AppCompatActivity {
             gameListView = (ListView) findViewById(R.id.game_list);
             gameListView.setAdapter(adapter);
 
-            gameListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            /*gameListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Intent intent = new Intent(view.getContext(), WatchSavedGame.class);
                 }
-            });
+            });*/
         }catch(Exception e) {
             e.printStackTrace();
         }

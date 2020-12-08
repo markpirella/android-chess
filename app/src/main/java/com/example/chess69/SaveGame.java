@@ -18,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 
 public class SaveGame extends AppCompatActivity {
 
@@ -60,7 +61,7 @@ public class SaveGame extends AppCompatActivity {
                         }
                     }else{
                         System.out.println("yeah it exists");
-                        SavedGames savedGamesObj = null;
+                        SavedGames savedGamesObj = new SavedGames();
                         try {
                             ObjectInputStream ois = new ObjectInputStream(new FileInputStream(getApplicationInfo().dataDir + File.separator + "SavedGames.dat"));
                             savedGamesObj = (SavedGames) ois.readObject();
@@ -68,7 +69,16 @@ public class SaveGame extends AppCompatActivity {
                         }catch(Exception e){
                             e.printStackTrace();
                         }
-                        //savedGamesObj.addNewGame(inputTitle, moves);
+                        if(savedGamesObj == null){
+                            savedGamesObj = new SavedGames();
+                        }
+                        // add new game!
+
+                        ArrayList<String> moves = (ArrayList<String>) getIntent().getSerializableExtra("moves");
+                        System.out.println(savedGamesObj);
+                        System.out.println(moves);
+                        System.out.println(inputTitle);
+                        savedGamesObj.addNewGame(moves, inputTitle);
                         try {
                             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(getApplicationInfo().dataDir + File.separator + "SavedGames.dat"));
                             oos.writeObject(savedGamesObj);
@@ -76,6 +86,10 @@ public class SaveGame extends AppCompatActivity {
                         }catch(Exception e){
                             e.printStackTrace();
                         }
+                        for(int i = 0; i < savedGamesObj.games.size(); i++){
+                            System.out.println(savedGamesObj.games.get(i).title + " -> " + savedGamesObj.games.get(i).moves + " / " + savedGamesObj.games.get(i).creationDate);
+                        }
+                        finish();
                     }
                 }
             }
@@ -83,7 +97,7 @@ public class SaveGame extends AppCompatActivity {
 
         cancel_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
+                finish();
             }
         });
     }
