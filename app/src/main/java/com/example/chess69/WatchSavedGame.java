@@ -26,7 +26,7 @@ public class WatchSavedGame extends AppCompatActivity {
         next_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // Perform action on click
-                
+
             }
         });
 

@@ -18,7 +18,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class SaveGame extends AppCompatActivity {
@@ -76,12 +75,10 @@ public class SaveGame extends AppCompatActivity {
                         // add new game!
 
                         ArrayList<String> moves = (ArrayList<String>) getIntent().getSerializableExtra("moves");
-                        //System.out.println(moves);
                         System.out.println(savedGamesObj);
                         System.out.println(moves);
                         System.out.println(inputTitle);
                         savedGamesObj.addNewGame(moves, inputTitle);
-
                         try {
                             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(getApplicationInfo().dataDir + File.separator + "SavedGames.dat"));
                             oos.writeObject(savedGamesObj);
@@ -92,8 +89,8 @@ public class SaveGame extends AppCompatActivity {
                         for(int i = 0; i < savedGamesObj.games.size(); i++){
                             System.out.println(savedGamesObj.games.get(i).title + " -> " + savedGamesObj.games.get(i).moves + " / " + savedGamesObj.games.get(i).creationDate);
                         }
+                        finish();
                     }
-                    finish();
                 }
             }
         });

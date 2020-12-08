@@ -48,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
         watch_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // Go to WatchGame
+                Intent intent = new Intent(v.getContext(), WatchGame.class);
+                startActivity(intent);
 
             }
         });
