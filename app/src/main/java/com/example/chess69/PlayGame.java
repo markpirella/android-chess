@@ -224,14 +224,20 @@ public class PlayGame extends AppCompatActivity {
 
         draw_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Perform action on click
+                // ask if other user agrees to proposed draw
+                if(turn.equals("white")){
+                    popUpYesOrNoDialog("Black, do you agree to the draw?", "draw");
+                }else{
+                    popUpYesOrNoDialog("White, do you agree to the draw?", "draw");
+                }
 
             }
         });
 
         resign_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Perform action on click
+                // ask if user is sure they want to resign
+                popUpYesOrNoDialog(turn + ", are you sure you want to resign?", "resign");
 
             }
         });
@@ -239,18 +245,6 @@ public class PlayGame extends AppCompatActivity {
 
 
         startGame();
-        pieces = new Piece[64];
-
-        for(int  i = 0; i < 64; i++){
-            pieces[i] = null;
-        }
-        int count = 0;
-        for(int i = 7; i >= 0; i--){
-            for(int j = 0; j < 8; j++){
-                pieces[count] = board[j][i];
-                count++;
-            }
-        }
 
         chessboard_gridview = (GridView)findViewById(R.id.chessboard);
         textview_turndisplay = (TextView)findViewById(R.id.turnDisplay);
@@ -562,6 +556,19 @@ public class PlayGame extends AppCompatActivity {
         for(int i = 0; i < 8; i++){
             for(int j = 2; j < 6; j++){
                 board[i][j] = null;
+            }
+        }
+
+        pieces = new Piece[64];
+
+        for(int  i = 0; i < 64; i++){
+            pieces[i] = null;
+        }
+        int count = 0;
+        for(int i = 7; i >= 0; i--){
+            for(int j = 0; j < 8; j++){
+                pieces[count] = board[j][i];
+                count++;
             }
         }
     }
@@ -1743,7 +1750,7 @@ public class PlayGame extends AppCompatActivity {
 
         // if checkmate, indicate winner and terminate program
         if(isCheckmate) {
-            endGame();
+            endGame("checkmate");
         }
 
         if(firstSquareSelection < 0 || secondSquareSelection < 0){
@@ -1807,13 +1814,31 @@ public class PlayGame extends AppCompatActivity {
         }
     }
 
-    private void endGame(){
-        // pop up dialog asking user which piece they'd like to upgrade to
+    private void endGame(String ending){
+        moves.add("END");
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         if(turn.equals("black")) {
-            builder.setTitle("Black wins! Would you like to:");
+            if(ending.equals("checkmate")) {
+                builder.setTitle("Black wins! Would you like to:");
+                moves.add("Black wins by checkmate!");
+            }else if(ending.equals("resign")){
+                builder.setTitle("White wins! Would you like to:");
+                moves.add("White wins by resignation!");
+            }else{
+                builder.setTitle("Game ends in draw! Would you like to:");
+                moves.add("Game ends in draw!");
+            }
         }else {
-            builder.setTitle("White wins! Would you like to:");
+            if(ending.equals("checkmate")) {
+                builder.setTitle("White wins! Would you like to:");
+                moves.add("White wins by checkmate!");
+            }else if(ending.equals("resign")){
+                builder.setTitle("Black wins! Would you like to:");
+                moves.add("Black wins by resignation!");
+            }else{
+                builder.setTitle("Game ends in draw! Would you like to:");
+                moves.add("Game ends in draw!");
+            }
         }
         String[] postgame_options = {"Play new game", "Save game", "Go to main menu"};
         builder.setItems(postgame_options, new DialogInterface.OnClickListener() {
@@ -1822,6 +1847,7 @@ public class PlayGame extends AppCompatActivity {
                 // the user clicked on postgame_options[which]
                 postgameSelection = which;
                 if(which == 0){ // restart activity
+                    turn = "white";
                     Intent intent = getIntent();
                     finish();
                     startActivity(intent);
@@ -1834,6 +1860,24 @@ public class PlayGame extends AppCompatActivity {
                     finish();
                 }
                 return;
+            }
+        });
+        builder.show();
+    }
+
+    private void popUpYesOrNoDialog(String title, String endType){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+        final String[] options = {"Yes", "No"};
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // the user clicked on options[which]
+                if(which == 0){
+                    endGame(endType);
+                }else{
+                    return;
+                }
             }
         });
         builder.show();
