@@ -25,8 +25,8 @@ public class GameListAdapter extends ArrayAdapter<SavedGame> {
     public GameListAdapter(Activity context, ArrayList<SavedGame> games) {
         super(context, R.layout.game_list_entry, games);
         this.context = context;
-        this.titles = null;
-        this.savedGames = null;
+        this.titles = new ArrayList<String>();
+        this.savedGames = new ArrayList<SavedGame>();
         for (SavedGame savedGame : games) {
             this.savedGames.add(savedGame);
         }
