@@ -2,6 +2,7 @@ package com.example.chess69;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -22,6 +23,9 @@ public class WatchGame extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_watch_game);
 
+        // set up back arrow button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         SavedGames savedGamesObj;
         try {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream(getApplicationInfo().dataDir + File.separator + "SavedGames.dat"));
@@ -38,10 +42,18 @@ public class WatchGame extends AppCompatActivity {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Intent intent = new Intent(view.getContext(), WatchSavedGame.class);
+                    intent.putExtra("moves", savedGamesObj.games.get(position));
+                    startActivity(intent);
                 }
             });
         }catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        finish();
+        return true;
     }
 }

@@ -38,7 +38,7 @@ public class PlayGame extends AppCompatActivity {
 
     String move;
 
-    int postgameSelection = -1;
+    static int postgameSelection;
 
     String currentColor;
 
@@ -46,15 +46,15 @@ public class PlayGame extends AppCompatActivity {
 
     static GridView chessboard_gridview;
 
-    int promotionPosition = 0;
-    boolean beingPromoted = false;
+    static int promotionPosition;
+    static boolean beingPromoted;
 
-    int numOfMoves = 0;
-    static String turn = "white";
+    static int numOfMoves;
+    static String turn;
     boolean changeTurn = false;
 
-    static String whiteKingLocation = "e1";
-    static String blackKingLocation = "e8";
+    static String whiteKingLocation;
+    static String blackKingLocation;
 
     static String promotionSelection;
 
@@ -90,8 +90,8 @@ public class PlayGame extends AppCompatActivity {
     boolean canUndo = false;
 
     String lastSuccessfulMove;
-    int undoEndPosition = 0;
-    int undoStartPosition = 0;
+    static int undoEndPosition = 0;
+    static int undoStartPosition = 0;
 
     /**
      * a double matrix that holds boolean values for if a pawn is eligible to have the en passant move used to capture them
@@ -529,6 +529,18 @@ public class PlayGame extends AppCompatActivity {
      * appropriate chess pieces, representing a real-life chess board
      */
     public static void startGame() {
+        postgameSelection = -1;
+        promotionPosition = 0;
+        beingPromoted = false;
+        numOfMoves = 0;
+        turn = "white";
+        whiteKingLocation = "e1";
+        blackKingLocation = "e8";
+        inCheckBeforeMove = false;
+        firstSquareSelection = -1;
+        secondSquareSelection = -1;
+        undoEndPosition = 0;
+        undoStartPosition = 0;
         board[0][0] = new Rook("white");
         board[1][0] = new Knight("white");
         board[2][0] = new Bishop("white");
@@ -614,6 +626,8 @@ public class PlayGame extends AppCompatActivity {
                 board[3][startRank] = board[0][startRank];
                 board[0][startRank] = null;
             }
+            writeBoardToPieces();
+            return;
         }
 
         // place piece in new location and remove it from old location
@@ -1750,6 +1764,8 @@ public class PlayGame extends AppCompatActivity {
 
         // if checkmate, indicate winner and terminate program
         if(isCheckmate) {
+            moves.add(move);
+            System.out.println(moves+", calling endGame()");
             endGame("checkmate");
         }
 
@@ -1785,7 +1801,9 @@ public class PlayGame extends AppCompatActivity {
         // add successful move to moves ArrayList
         if(!beingPromoted) {
             System.out.println("adding move: "+move);
-            moves.add(move);
+            if(!isCheckmate) {
+                moves.add(move);
+            }
         }else{
             beingPromoted = false;
         }
@@ -1817,6 +1835,7 @@ public class PlayGame extends AppCompatActivity {
     private void endGame(String ending){
         moves.add("END");
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(false);
         if(turn.equals("black")) {
             if(ending.equals("checkmate")) {
                 builder.setTitle("Black wins! Would you like to:");
@@ -1841,6 +1860,7 @@ public class PlayGame extends AppCompatActivity {
             }
         }
         String[] postgame_options = {"Play new game", "Save game", "Go to main menu"};
+        builder.setCancelable(false);
         builder.setItems(postgame_options, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -1869,6 +1889,7 @@ public class PlayGame extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(title);
         final String[] options = {"Yes", "No"};
+        builder.setCancelable(false);
         builder.setItems(options, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -1881,6 +1902,16 @@ public class PlayGame extends AppCompatActivity {
             }
         });
         builder.show();
+    }
+
+    private void writeBoardToPieces(){
+        int count = 0;
+        for(int i = 7; i >= 0; i--){
+            for(int j = 0; j < 8; j++){
+                pieces[count] = board[j][i];
+                count++;
+            }
+        }
     }
 
 }

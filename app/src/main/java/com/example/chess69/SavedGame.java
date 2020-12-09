@@ -16,4 +16,8 @@ public class SavedGame implements Serializable {
         creationDate = new Date(System.currentTimeMillis());
     }
 
+    public ArrayList<String> getMoves(){
+        return moves;
+    }
+
 }
