@@ -811,7 +811,9 @@ public class PlayGame extends AppCompatActivity {
                 }
 
                 // if pawn moved two spaces on first move, set its spot in enpassant matrix to true
-                enpassantMatrix[endFile][endRank] = true;
+                if(Math.abs(endRank - startRank) == 2){
+                    enpassantMatrix[endFile][endRank] = true;
+                }
 
                 break;
             case "Rook": {

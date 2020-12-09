@@ -153,15 +153,6 @@ public class WatchSavedGame extends AppCompatActivity {
 
         move(move, secondSquareSelection);
 
-        // revert all enpassant values back to false for the player who DIDN'T just make a move
-        for(int a = 0; a < 8; a++) {
-            for(int b = 0; b < 8; b++) {
-                if( board[a][b] != null && !(board[a][b].getColor().equals(turn)) ) {
-                    enpassantMatrix[a][b] = false;
-                }
-            }
-        }
-
         boolean isCheck = false;
         boolean isCheckmate = false;
 
@@ -223,6 +214,19 @@ public class WatchSavedGame extends AppCompatActivity {
             }
             writeBoardToPieces();
             return;
+        }
+
+        //take care of enpassant first, and on its own
+        if( board[startFile][startRank].getType().equals("Pawn") && Math.abs(endFile - startFile) == 1 && Math.abs(endRank - startRank) == 1 && board[endFile][endRank] == null) { // trying to move diagonal to empty spot - check if enpassant
+            if(turn.equals("black") && endRank - startRank < 0) {
+                board[endFile][endRank+1] = null;
+                pieces[endPosition-8] = null;
+                return;
+            }else if(turn.equals("white") && endRank - startRank > 0){
+                board[endFile][endRank-1] = null;
+                pieces[endPosition+8] = null;
+                return;
+            }
         }
 
         // place piece in new location and remove it from old location
