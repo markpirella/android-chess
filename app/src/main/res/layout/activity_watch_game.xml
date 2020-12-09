@@ -6,10 +6,46 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".WatchGame">
-    
+
+    <Switch
+        android:id="@+id/switch1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/textView4"
+        android:paddingTop="15dp"
+        android:paddingLeft="6dp" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/textView2"
+        android:paddingTop="15dp"
+        android:paddingLeft="10dp"
+        android:text="Title" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/switch1"
+        android:paddingTop="15dp"
+        android:paddingLeft="3dp"
+        android:text="Date" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="15dp"
+        android:textSize="17dp"
+        android:text="Sort by: "/>
+
     <ListView
         android:id="@+id/game_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content"
+        android:paddingTop="15dp"
+        android:layout_below="@id/textView2"/>
 
 </RelativeLayout>

@@ -168,7 +168,9 @@ public class WatchSavedGame extends AppCompatActivity {
         if(firstSquareSelection < 0 || secondSquareSelection < 0){
             return;
         }
-        pieces[secondSquareSelection] = pieces[firstSquareSelection];
+        if(move.length() != 7) {
+            pieces[secondSquareSelection] = pieces[firstSquareSelection];
+        }
         pieces[firstSquareSelection] = null;
         squaresAdapter.notifyDataSetChanged();
 
@@ -225,7 +227,41 @@ public class WatchSavedGame extends AppCompatActivity {
 
         // place piece in new location and remove it from old location
         board[endFile][endRank] = board[startFile][startRank];
+        //pieces[endPosition] = board[startFile][startRank];
         board[startFile][startRank] = null;
+
+        // check for promotion
+        if(move.length() == 7){
+            System.out.println("TRYING TO PROMOTE");
+            switch(move.charAt(6)){
+                case 'Q':
+                    board[endFile][endRank] = new Queen(turn);
+                    board[endFile][endRank].incNumMoves();
+                    board[endFile][endRank].hasMoved();
+                    pieces[endPosition] = new Queen(turn);
+                    break;
+                case 'B':
+                    board[endFile][endRank] = new Bishop(turn);
+                    board[endFile][endRank].incNumMoves();
+                    board[endFile][endRank].hasMoved();
+                    pieces[endPosition] = new Bishop(turn);
+                    break;
+                case 'R':
+                    board[endFile][endRank] = new Rook(turn);
+                    board[endFile][endRank].incNumMoves();
+                    board[endFile][endRank].hasMoved();
+                    pieces[endPosition] = new Rook(turn);
+                    break;
+                case 'K':
+                    board[endFile][endRank] = new Knight(turn);
+                    board[endFile][endRank].incNumMoves();
+                    board[endFile][endRank].hasMoved();
+                    pieces[endPosition] = new Knight(turn);
+                    break;
+            }
+            //writeBoardToPieces();
+            //printBoard();
+        }
 
     }
 
@@ -237,6 +273,26 @@ public class WatchSavedGame extends AppCompatActivity {
                 count++;
             }
         }
+    }
+
+    public static void printBoard() {
+        for(int i = 7; i >= 0; i--) {
+            for(int j = 0; j < 8; j++) {
+                if(board[j][i] == null && (i + j) % 2 == 0) { // print black space
+                    System.out.print("## ");
+                }else if(board[j][i] == null && (i + j) % 2 != 0) { // print white space
+                    System.out.print("   ");
+                }else { // print out piece
+                    System.out.print(board[j][i] + " ");
+                }
+            }
+            System.out.print((i+1) + "\n"); // print rank numbers (1 through 8) on right side
+        }
+        for(int k = 0; k < 8; k++) {
+            System.out.print(" " + (char)(k+97) + " "); // print file chars (a through h) on bottom of board
+        }
+        System.out.println();
+
     }
 
     @Override
