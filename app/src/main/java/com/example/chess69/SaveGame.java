@@ -22,10 +22,22 @@ import java.util.ArrayList;
 
 public class SaveGame extends AppCompatActivity {
 
+    File tempFile;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_save_game);
+
+        tempFile = new File(getApplicationInfo().dataDir + File.separator + "SavedGames.dat");
+        if(!tempFile.exists()) {
+            System.out.println("nah doesnt exist");
+            try {
+                tempFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         final EditText title = findViewById(R.id.input_game_title);
 
@@ -42,24 +54,7 @@ public class SaveGame extends AppCompatActivity {
                     return;
                 }else{
                     System.out.println(title.getText().toString().toUpperCase());
-                    // see if SavedGames.dat exists
-                    File tempFile = new File(getApplicationInfo().dataDir + File.separator + "SavedGames.dat");
-                    if(!tempFile.exists()){
-                        System.out.println("nah doesnt exist");
-                        try {
-                            tempFile.createNewFile();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        try {
-                            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(getApplicationInfo().dataDir + File.separator + "SavedGames.dat"));
-                            SavedGames savedGamesObj = new SavedGames();
-                            oos.writeObject(savedGamesObj);
-                            oos.close();
-                        }catch(Exception e){
-                            e.printStackTrace();
-                        }
-                    }else{
+                    if(tempFile.exists()){
                         System.out.println("yeah it exists");
                         SavedGames savedGamesObj = new SavedGames();
                         try {

@@ -82,6 +82,7 @@ public class PlayGame extends AppCompatActivity {
      * useful for checking for checkmate
      */
     static Piece[][] historyBoard = new Piece[8][8];
+    static Piece[][] undoBoard = new Piece[8][8];
 
     static Piece[] pieces;
 
@@ -133,7 +134,8 @@ public class PlayGame extends AppCompatActivity {
                     Toast.makeText(PlayGame.this, "No moves to undo", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                /*
+
+                printBoard(undoBoard);
                 copyBoardToOther(undoBoard, board);
                 // copy board to pieces to update that as well
                 int count = 0;
@@ -143,9 +145,12 @@ public class PlayGame extends AppCompatActivity {
                         count++;
                     }
                 }
-                 */
+                int startFile = (int)(move.charAt(0)) - 97;
+                int startRank = (int)(move.charAt(1)) - 49;
+                board[startFile][startRank].decNumMoves();
+
                 moves.remove(moves.size()-1);
-                performReverseMove(lastSuccessfulMove);
+                //performReverseMove(lastSuccessfulMove);
                 squaresAdapter.notifyDataSetChanged();
                 numOfMoves--;
                 if(turn.equals("black")){
@@ -251,45 +256,6 @@ public class PlayGame extends AppCompatActivity {
         textview_turndisplay.setText("white's turn!");
         squaresAdapter = new SquaresAdapter(this, pieces);
         chessboard_gridview.setAdapter(squaresAdapter);
-
-        //System.out.println("******INDEX 2: " + chessboard_gridview.getChildAt(2).toString());
-
-        /*
-        gridView = (GridView) findViewById(R.id.chessboard);
-        //GridView gridView;
-
-        //int count = 0;
-        /*
-        new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, square_colors) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View view = super.getView(position, convertView, parent);
-
-                int color = 0x000000; // black
-                if (count%2==0) {
-                    color = 0xffffff; // white
-                }
-
-                view.setBackgroundColor(color);
-                count++;
-                return view;
-            }
-        };
-
-         */
-
-    /*
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, square_colors);
-        gridView.setAdapter(adapter);
-
-        for(int i = 0; i < gridView.getCount(); i++) {
-            View tv = (View) gridView.getChildAt(i);
-            if(i%2==0 && tv != null) {
-                tv.setBackgroundColor(Color.BLACK);
-            }
-        }
-        */
 
         chessboard_gridview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
@@ -1566,7 +1532,7 @@ public class PlayGame extends AppCompatActivity {
     /**
      * method used to print out the "board" double matrix after each turn
      */
-    public static void printBoard() {
+    public static void printBoard(Piece [][] board) {
         for(int i = 7; i >= 0; i--) {
             for(int j = 0; j < 8; j++) {
                 if(board[j][i] == null && (i + j) % 2 == 0) { // print black space
@@ -1656,6 +1622,7 @@ public class PlayGame extends AppCompatActivity {
 
         // save board in case given move puts king into check, so you can print "illegal move" and revert the board back
         copyBoardToOther(board, historyBoard);
+        copyBoardToOther(board, undoBoard);
         move(move, secondSquareSelection);
 
         // check and see if the king of the player who made the move got put into check
@@ -1682,6 +1649,8 @@ public class PlayGame extends AppCompatActivity {
         }
         if(putSelfIntoCheck) {
             Toast.makeText(PlayGame.this, "Illegal move, try again", Toast.LENGTH_SHORT).show();
+            pieces[firstSquareSelection].selected = false;
+            squaresAdapter.notifyDataSetChanged();
             firstSquareSelection = -1;
             secondSquareSelection = -1;
             return;
@@ -1774,6 +1743,7 @@ public class PlayGame extends AppCompatActivity {
         if(firstSquareSelection < 0 || secondSquareSelection < 0){
             return;
         }
+
         pieces[secondSquareSelection] = pieces[firstSquareSelection];
         pieces[firstSquareSelection] = null;
         squaresAdapter.notifyDataSetChanged();
@@ -1790,7 +1760,7 @@ public class PlayGame extends AppCompatActivity {
             pieces[position].incNumMoves();
         }
 
-        printBoard();
+        printBoard(board);
         textview_turndisplay.setText(turn + "'s turn!");
 
         lastSuccessfulMove = move;
