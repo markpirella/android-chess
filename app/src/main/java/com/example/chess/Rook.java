@@ -1,4 +1,4 @@
-package com.example.chess69;
+package com.example.chess;
 
 /**
  * This is a class used to represent a rook chess piece

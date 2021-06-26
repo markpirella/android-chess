@@ -1,4 +1,4 @@
-package com.example.chess69;
+package com.example.chess;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -7,11 +7,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-
-import static com.example.chess69.PlayGame.board;
-import static com.example.chess69.PlayGame.pieces;
-import static com.example.chess69.PlayGame.promotionSelection;
-import static com.example.chess69.PlayGame.squaresAdapter;
 
 public class PickPromotionPiece extends AppCompatActivity {
     String chosenPiece;

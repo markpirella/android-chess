@@ -1,4 +1,4 @@
-package com.example.chess69;
+package com.example.chess;
 
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package com.example.chess69;
+package com.example.chess;
 
 import android.widget.ImageView;
 

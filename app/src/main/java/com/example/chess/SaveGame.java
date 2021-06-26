@@ -1,16 +1,12 @@
-package com.example.chess69;
+package com.example.chess;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileInputStream;

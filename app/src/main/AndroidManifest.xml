@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.chess69">
+    package="com.example.chess">
 
     <application
         android:allowBackup="true"
@@ -8,19 +8,19 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Chess69">
-        <activity android:name=".WatchSavedGame"></activity>
-        <activity android:name=".SaveGame" />
-        <activity android:name=".PlayGame" />
-        <activity android:name=".PickPromotionPiece" />
-        <activity android:name=".MainActivity">
+        android:theme="@style/Theme.Chess">
+        <activity android:name="com.example.chess.WatchSavedGame"></activity>
+        <activity android:name="com.example.chess.SaveGame" />
+        <activity android:name="com.example.chess.PlayGame" />
+        <activity android:name="com.example.chess.PickPromotionPiece" />
+        <activity android:name="com.example.chess.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".WatchGame" />
+        <activity android:name="com.example.chess.WatchGame" />
     </application>
 
 </manifest>

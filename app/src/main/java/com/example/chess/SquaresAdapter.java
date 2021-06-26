@@ -1,9 +1,7 @@
-package com.example.chess69;
+package com.example.chess;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.text.Layout;
-import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +9,6 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
-import com.example.chess69.MainActivity;
 
 public class SquaresAdapter extends BaseAdapter {
     private final Context mContext;
